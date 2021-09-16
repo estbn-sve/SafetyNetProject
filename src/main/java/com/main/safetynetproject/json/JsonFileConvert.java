@@ -3,172 +3,182 @@ package com.main.safetynetproject.json;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
 import com.main.safetynetproject.object.FireStations;
+import com.main.safetynetproject.object.MedicalRecords;
 import com.main.safetynetproject.object.Person;
-import lombok.Builder;
-import lombok.Data;
+import org.springframework.core.io.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Builder
-@Data
-class TempsFireStation {
-    int tempsStation;
-    String tempsAddress;
-}
-
-@Builder
-@Data
-class TempsMedicalRecords {
-    String tempsFirstName;
-    String tempsLastName;
-    String tempsBirthdate;
-    List<String> tempsMedications;
-    List<String> tempsAllergies;
-}
-
-@Builder
-@Data
-class TempsAnyMedicalrecords {
-    Any tempsAnyFirstName;
-    Any tempsAnyLastName;
-    Any tempsAnyBirthdate;
-    List<Any> tempsAnyMedications;
-    List<Any> tempsAnyAllergies;
-}
-
-//TODO Regarder avec Youssef pourquoi GIT n'est pas pris en compte.
 public class JsonFileConvert {
-    public String pathFile = "J:/IdeaProjects/SafetyNetProject/src/main/resources/JsonSource.json";
-    private List<Any> anyPersons;
-    private List<Any> anyFirestation;
-    private List<Any> anyMedicalrecords;
-    List<TempsAnyMedicalrecords>tempsAnyMedicalrecordsList;
-    private Any jsonFile;
+    private Resource dataFile;
 
-    private boolean CreateAnyObject(){
+    private List<MedicalRecords> medicalRecordsList;
+    private List<FireStations>fireStationsList;
+    private List<Person>personsList;
 
-        try {
-            File dataJsonFileLocal = new File(pathFile);
+    private class TempsFireStation {
+        public int tempsStation;
+        public String tempsAddress;
+    }
+
+    private class ConvertMedicalRecords {
+        public String conversFirstName;
+        public String conversLastName;
+        public String conversBirthdate;
+        public List<String> conversMedications;
+        public List<String> conversAllergies;
+    }
+
+    public JsonFileConvert(Resource inputFile) {
+        dataFile = inputFile;
+    }
+
+    private Any loadJsonData(){
+        try{
+            File dataJsonFileLocal = dataFile.getFile();
             byte[] data = Files.readAllBytes(dataJsonFileLocal.toPath());
-            jsonFile = JsonIterator.deserialize(data);
-        } catch (IOException e) {
-            System.err.println("Error in CreateAnyObject on JsonIterator !");
+            return JsonIterator.deserialize(data);
+        } catch (IOException e){
             System.err.println("Error : " + e);
-            return false;
+            return null;
         }
-        try {
-            anyPersons = jsonFile.get("persons").asList();
-        } catch (Exception e) {
-            System.err.println("Error in CreateAnyObject on anyPersons object !");
-            System.err.println("Error : " + e);
-            return false;
-        }
-        try {
-            anyMedicalrecords = jsonFile.get("medicalrecords").asList();
-            tempsAnyMedicalrecordsList = anyMedicalrecords.stream().map(any ->
-                    TempsAnyMedicalrecords.builder()
-                            .tempsAnyFirstName(any.get("firstName"))
-                            .tempsAnyLastName(any.get("lastName"))
-                            .tempsAnyBirthdate(any.get("birthdate"))
-                            .tempsAnyMedications(any.get("medications").asList())
-                            .tempsAnyAllergies(any.get("allergies").asList())
-                            .build()).collect(Collectors.toList());
-        } catch (Exception e) {
-            System.err.println("Error in CreateAnyObject on anyMedicalrecords object !");
-            System.err.println("Error : " + e);
-            return false;
-        }
-        try {
-            anyFirestation = jsonFile.get("firestations").asList();
-        } catch (Exception e) {
-            System.err.println("Error in CreateAnyObject on anyFirestation object !");
-            System.err.println("Error : " + e);
-            return false;
-        }
-        return true;
     }
-    private void CreateJavaObject() {
-        try {
-            List<TempsFireStation>tempsFireStationList = anyFirestation.stream().map(any ->
-                    TempsFireStation.builder()
-                            .tempsStation(any.toInt("station"))
-                            .tempsAddress(any.toString("address"))
-                            .build()).collect(Collectors.toList());
-            //System.out.println(tempsFireStationList);
-            try {
-                //TODO incorporer les addresse dans une liste d'address pour chaque station. (lambda)
-                List<FireStations>fireStationsList = tempsFireStationList.stream().map(tempsFireStation ->
-                        FireStations.builder()
-                                .station(tempsFireStation.getTempsStation())
-                                .address(new ArrayList<>())
-                                .build()).distinct().collect(Collectors.toList());
 
-                tempsFireStationList.stream().forEach(tempsFireStation ->{
-                    boolean result = fireStationsList.stream().allMatch(fireStations -> fireStations.equals("Station"));
-                        }
-                );
-                System.out.println(fireStationsList);
-                // filter(fireStations ->
-                //                        !"address".equals(tempsFireStationList.equals("tempAddress"))).
-                //System.out.println(fireStationsList);
-                System.out.println("1");
-            } catch (Exception e){
-                System.err.println("Error in CreateJavaObject on FireStation object !");
-                System.err.println("Error : " + e);
-                System.exit(0);
-            }
-        } catch (Exception e) {
-            System.err.println("Error in CreateJavaObject on TempFireStation object !");
-            System.err.println("Error : " + e);
-            System.exit(0);
-        }
-        try {
-            //TODO Réussir à crée en String une liste consultable de medication et d'allergies
-            //TODO Puis crée medicalRecordsList avec uniquement les medication et allergies
-            List<TempsMedicalRecords>tempsMedicalRecordsList = tempsAnyMedicalrecordsList.stream().map(tempsAnyMedicalrecords ->
-                    TempsMedicalRecords.builder()
-                            .tempsFirstName(tempsAnyMedicalrecords.getTempsAnyFirstName().toString())
-                            .tempsLastName(tempsAnyMedicalrecords.getTempsAnyLastName().toString())
-                            .tempsBirthdate(tempsAnyMedicalrecords.getTempsAnyBirthdate().toString())
-                            //.tempsMedications(tempsAnyMedicalrecords.toString("medication"))
-                            //.tempsAllergies(Collections.singletonList(tempsAnyMedicalrecords.getTempsAnyAllergies().toString()))
-                            .build()).collect(Collectors.toList());
-            System.out.println(anyMedicalrecords);
-            System.out.println(tempsMedicalRecordsList);
-            System.out.println("3");
-        }catch (Exception e) {
-            System.err.println("Error in CreateJavaObject on TempMedicalRecords object !");
-            System.err.println("Error : " + e);
-            System.exit(0);
-        }
-        try {
-            //TODO Ajouter les information contenue dans medicalRecordsList
-            List<Person>personsList = anyPersons.stream().map(any ->
-                    Person.builder()
-                            .firstName(any.toString("firstName"))
-                            .lastName(any.toString("lastName"))
-                            .address(any.toString("address"))
-                            .city(any.toString("city"))
-                            .zip(any.toString("zip"))
-                            .phone(any.toString("phone"))
-                            .email(any.toString("email"))
-                            .build()).collect(Collectors.toList());
-            //System.out.println(personsList);
-        } catch (Exception e){
-            System.err.println("Error in CreateJavaObject on Person object !");
-            System.err.println("Error : " + e);
-            System.exit(0);
-        }
+    private List<TempsFireStation> convertAnyToTempsFireStationList(List<Any> anyFirestation){
+        return anyFirestation.stream().map(any -> {
+            TempsFireStation tps = new TempsFireStation();
+            tps.tempsStation = any.toInt("station");
+            tps.tempsAddress = any.toString("address");
+            return tps;
+        }).collect(Collectors.toList());
     }
-    public void ExecuteJsonFileConvert(){
-        JsonFileConvert startJsonFileConvert = new JsonFileConvert();
-        if (startJsonFileConvert.CreateAnyObject()) {
-            startJsonFileConvert.CreateJavaObject();
+    private List<FireStations> createFireStationList(List<Any> anyFirestation){
+        List<TempsFireStation> tempsFireStationList = convertAnyToTempsFireStationList(anyFirestation);
+        List<FireStations> fireStationsList = tempsFireStationList.stream()
+                .map(tempsFireStation -> FireStations.builder()
+                        .station(tempsFireStation.tempsStation)
+                        .address(new ArrayList<>())
+                        .build())
+                .distinct()
+                .collect(Collectors.toList());
+        fireStationsList
+                .forEach(fireStations -> {
+                    List<String> resultTempsFireStation = tempsFireStationList.stream()
+                            .filter(tempsFireStation -> tempsFireStation.tempsStation == fireStations.getStation())
+                            .map(tempsFireStation -> tempsFireStation.tempsAddress)
+                            .collect(Collectors.toList());
+                    fireStations.setAddress(resultTempsFireStation);
+                });
+        return fireStationsList;
+    }
+
+    private List<ConvertMedicalRecords> convertAnyToMedicalRecordList (List<Any> anyMedicalRecords){
+        return anyMedicalRecords.stream().map(any -> {
+            ConvertMedicalRecords cmr = new ConvertMedicalRecords();
+            cmr.conversFirstName = any.toString("firstName");
+            cmr.conversLastName = any.toString("lastName");
+            cmr.conversBirthdate = any.toString("birthdate");
+            cmr.conversAllergies = any.get("allergies").asList().stream().map(Any::toString).collect(Collectors.toList());
+            cmr.conversMedications = any.get("medications").asList().stream().map(Any::toString).collect(Collectors.toList());
+            return cmr;
+        }).collect(Collectors.toList());
+    }
+    private List<MedicalRecords> createMedicalRecordList (List<Any> anyMedicalRecords){
+        List<ConvertMedicalRecords> convertMedicalRecordsList = convertAnyToMedicalRecordList(anyMedicalRecords);
+        return convertMedicalRecordsList.stream()
+                .map(convertMedicalRecords -> MedicalRecords.builder()
+                        .allergies(convertMedicalRecords.conversAllergies)
+                        .medications(convertMedicalRecords.conversMedications)
+                        .build()).collect(Collectors.toList());
+    }
+
+    private List<Person> createPersonListWithMedicalRecords(List<Any> anyPersons, List<Any> anyMedicalRecords){
+        List<ConvertMedicalRecords> convertMedicalRecordsList = convertAnyToMedicalRecordList(anyMedicalRecords);
+        medicalRecordsList = createMedicalRecordList(anyMedicalRecords);
+        personsList = anyPersons.stream().map(any ->
+                Person.builder()
+                        .firstName(any.toString("firstName"))
+                        .lastName(any.toString("lastName"))
+                        .address(any.toString("address"))
+                        .city(any.toString("city"))
+                        .zip(any.toString("zip"))
+                        .phone(any.toString("phone"))
+                        .email(any.toString("email"))
+                        .birthDate(null)
+                        .medicalRecords(new ArrayList<>())
+                        .build()).collect(Collectors.toList()
+        );
+        personsList
+                .forEach(person -> {
+                    String resultBirthDate = convertMedicalRecordsList.stream()
+                            .filter(convertMedicalRecords -> convertMedicalRecords.conversFirstName.equals(person.getFirstName()))
+                            .filter(convertMedicalRecords -> convertMedicalRecords.conversLastName.equals(person.getLastName()))
+                            .map(convertMedicalRecords -> convertMedicalRecords.conversBirthdate)
+                            /*.filter(convertMedicalRecords -> convertMedicalRecords.getConversFirstName().equals(person.getFirstName()))
+                            .filter(convertMedicalRecords -> convertMedicalRecords.getConversLastName().equals(person.getLastName()))
+                            .map(ConvertMedicalRecords::getConversBirthdate)*/
+                            .collect(Collectors.joining());
+                    person.setBirthDate(resultBirthDate);
+
+                    List<List<String>> resultMedications = convertMedicalRecordsList.stream()
+                            .filter(convertMedicalRecords -> convertMedicalRecords.conversFirstName.equals(person.getFirstName()))
+                            .filter(convertMedicalRecords -> convertMedicalRecords.conversLastName.equals(person.getLastName()))
+                            .map(convertMedicalRecords -> convertMedicalRecords.conversMedications)
+                            /*.filter(convertMedicalRecords -> convertMedicalRecords.getConversFirstName().equals(person.getFirstName()))
+                            .filter(convertMedicalRecords -> convertMedicalRecords.getConversLastName().equals(person.getLastName()))
+                            .map(ConvertMedicalRecords::getConversMedications)*/
+                            .collect(Collectors.toList());
+                    List<String> resultListMedications = resultMedications.stream().flatMap(List::stream).collect(Collectors.toList());
+
+                    List<List<String>> resultAllergies = convertMedicalRecordsList.stream()
+                            .filter(convertMedicalRecords -> convertMedicalRecords.conversFirstName.equals(person.getFirstName()))
+                            .filter(convertMedicalRecords -> convertMedicalRecords.conversLastName.equals(person.getLastName()))
+                            .map(convertMedicalRecords -> convertMedicalRecords.conversAllergies)
+                            /*.filter(convertMedicalRecords -> convertMedicalRecords.getConversFirstName().equals(person.getFirstName()))
+                            .filter(convertMedicalRecords -> convertMedicalRecords.getConversLastName().equals(person.getLastName()))
+                            .map(ConvertMedicalRecords::getConversAllergies)*/
+                            .collect(Collectors.toList());
+                    List<String> resultListAllergies = resultAllergies.stream().flatMap(List::stream).collect(Collectors.toList());
+
+                    List<MedicalRecords> resultMedicalRecords = medicalRecordsList.stream().map(medicalRecords ->
+                                    MedicalRecords.builder()
+                                            .medications(resultListMedications)
+                                            .allergies(resultListAllergies)
+                                            .build())
+                            .distinct()
+                            .collect(Collectors.toList());
+                    person.setMedicalRecords(resultMedicalRecords);
+                });
+        return personsList;
+    }
+
+    private void convertAnyToJsonObject(Any jsonData){
+        List<Any> anyMedicalRecords = jsonData.get("medicalrecords").asList();
+        medicalRecordsList = createMedicalRecordList(anyMedicalRecords);
+
+        List<Any> anyPersons = jsonData.get("persons").asList();
+        personsList = createPersonListWithMedicalRecords(anyPersons, anyMedicalRecords);
+
+        List<Any> anyFirestation = jsonData.get("firestations").asList();
+        fireStationsList = createFireStationList(anyFirestation);
+
+        System.out.println(medicalRecordsList);
+        System.out.println(personsList);
+        System.out.println(fireStationsList);
+        System.out.println();
+    }
+
+    public void extractJsonData(){
+        Any jsonData = loadJsonData();
+        if (jsonData != null){
+            convertAnyToJsonObject(jsonData);
+            System.out.println("JsonData load !");
+        } else {
+            System.err.println("JsonData null !");
         }
     }
 }
