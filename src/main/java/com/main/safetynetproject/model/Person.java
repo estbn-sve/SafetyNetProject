@@ -1,4 +1,4 @@
-package com.main.safetynetproject.object;
+package com.main.safetynetproject.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,11 +13,18 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class FireStations {
+public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
-    int station;
-    @ElementCollection
-    List<String> address;
+    String firstName;
+    String lastName;
+    String address;
+    String city;
+    String zip;
+    String phone;
+    String email;
+    String birthDate;
+    @OneToMany(cascade = CascadeType.ALL)
+    List<MedicalRecords> medicalRecords;
 }

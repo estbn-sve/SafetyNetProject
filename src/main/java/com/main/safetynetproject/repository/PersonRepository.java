@@ -1,6 +1,6 @@
-package com.main.safetynetproject.dbb.repository;
+package com.main.safetynetproject.repository;
 
-import com.main.safetynetproject.object.Person;
+import com.main.safetynetproject.model.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

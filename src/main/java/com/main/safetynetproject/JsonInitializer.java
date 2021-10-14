@@ -1,9 +1,7 @@
 package com.main.safetynetproject;
 
 import com.main.safetynetproject.json.JsonFileConvert;
-import com.main.safetynetproject.object.Person;
-import com.main.safetynetproject.service.FireStationsService;
-import com.main.safetynetproject.service.MedicalRecordsService;
+import com.main.safetynetproject.service.FireStationService;
 import com.main.safetynetproject.service.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,13 +18,13 @@ public class JsonInitializer implements CommandLineRunner {
     @Autowired
     private PersonService personService;
     @Autowired
-    private FireStationsService fireStationsService;
+    private FireStationService fireStationsService;
 
     @Override
     public void run(String... args) {
         JsonFileConvert startJsonFileConvert = new JsonFileConvert(jsonDataFile);
         startJsonFileConvert.extractJsonData();
-        personService.addPersons(startJsonFileConvert.getPersonList());
-        fireStationsService.addFireStations(startJsonFileConvert.getFireStationsList());
+        personService.addAllPersons(startJsonFileConvert.getPersonList());
+        fireStationsService.addAllFireStations(startJsonFileConvert.getFireStationsList());
     }
 }

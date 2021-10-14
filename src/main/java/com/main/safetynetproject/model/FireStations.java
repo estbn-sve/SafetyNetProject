@@ -1,4 +1,4 @@
-package com.main.safetynetproject.object;
+package com.main.safetynetproject.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,12 +13,11 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class MedicalRecords {
+public class FireStations {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
+    int station;
     @ElementCollection
-    List<String> medications;
-    @ElementCollection
-    List<String> allergies;
+    List<String> address;
 }
