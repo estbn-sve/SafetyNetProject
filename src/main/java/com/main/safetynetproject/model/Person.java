@@ -27,4 +27,17 @@ public class Person {
     String birthDate;
     @OneToMany(cascade = CascadeType.ALL)
     List<MedicalRecords> medicalRecords;
+
+    /*@Builder
+    public class CopyPerson {
+        String firstName;
+        String lastName;
+        String address;
+        String city;
+        String zip;
+        String phone;
+        String email;
+        String birthDate;
+        List<MedicalRecords> medicalRecords;
+    }*/
 }

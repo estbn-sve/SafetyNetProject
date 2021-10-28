@@ -5,10 +5,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /*
 Mise en place des endpoints REST OK
-Mise en place des Urls
 Mise en place d'actuators : info, health, httptrace, metrics OK
 Logger tous les endpoints OK
 Tout tester : Rapport de couverture et de tests OK
+Mise en place des Urls
+Test URL
  */
 @SpringBootApplication
 public class SafetyNetProjectApplication {

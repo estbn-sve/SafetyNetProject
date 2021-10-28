@@ -23,14 +23,15 @@ public class FireStationService {
     }
 
     public FireStations deleteFireStation(final Integer id){
-        FireStations fs = null;
-        if (repository.existsById(id)){
-            repository.deleteById(id);
-            return fs;
-        } else {
-            return repository.findById(id).orElseThrow(()->
-                    new NoSuchElementException("Error with deleteFireStation "+id));
-        }
+        FireStations fs = repository.findById(id).orElseThrow(()->
+                new NoSuchElementException("Error with deleteFireStation "+id));
+        FireStations copy = FireStations.builder()
+                .id(fs.getId())
+                .address(fs.getAddress())
+                .station(fs.getStation())
+                .build();
+        repository.delete(fs);
+        return copy;
     }
 
     public FireStations addFireStation(FireStations fireStations){

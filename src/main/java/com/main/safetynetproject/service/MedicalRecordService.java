@@ -1,5 +1,6 @@
 package com.main.safetynetproject.service;
 
+import com.main.safetynetproject.model.FireStations;
 import com.main.safetynetproject.repository.MedicalRecordRepository;
 import com.main.safetynetproject.model.MedicalRecords;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,16 @@ public class MedicalRecordService {
     }
 
     public MedicalRecords deleteMedicalRecord(final Integer id){
-        MedicalRecords mr = null;
-        if (repository.existsById(id)){
-            repository.deleteById(id);
-            return mr;
-        } else {
-            return repository.findById(id).orElseThrow(()->
-                    new NoSuchElementException("Error with deleteMedicalRecord "+id));
-        }    }
+        MedicalRecords mr = repository.findById(id).orElseThrow(()->
+                new NoSuchElementException("Error with deleteMedicalRecord "+id));
+        MedicalRecords copy = MedicalRecords.builder()
+                .id(mr.getId())
+                .medications(mr.getMedications())
+                .allergies(mr.getAllergies())
+                .build();
+        repository.delete(mr);
+        return copy;
+    }
 
     public MedicalRecords addMedicalRecord (MedicalRecords medicalRecords) {
         Integer id = medicalRecords.getId();

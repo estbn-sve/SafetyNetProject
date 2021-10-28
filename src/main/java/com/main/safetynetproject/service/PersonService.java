@@ -4,9 +4,16 @@ import com.main.safetynetproject.model.MedicalRecords;
 import com.main.safetynetproject.repository.PersonRepository;
 import com.main.safetynetproject.model.Person;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.datetime.DateFormatter;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 public class PersonService {
@@ -23,14 +30,26 @@ public class PersonService {
     }
 
     public Person deletePerson(final Integer id){
-        Person p = null;
-        if (repository.existsById(id)){
-            repository.deleteById(id);
-            return p;
-        } else {
-            return repository.findById(id).orElseThrow(()->
-                    new NoSuchElementException("Error with deletePerson "+id));
-        }
+        Person p = repository.findById(id).orElseThrow(()->
+                new NoSuchElementException("Error with deletePerson "+id));
+        Person copy = Person.builder()
+                .id(p.getId())
+                .firstName(p.getFirstName())
+                .lastName(p.getLastName())
+                .address(p.getAddress())
+                .city(p.getCity())
+                .zip(p.getZip())
+                .phone(p.getPhone())
+                .email(p.getEmail())
+                .birthDate(p.getBirthDate())
+                .medicalRecords(p.getMedicalRecords() == null ? null : p.getMedicalRecords().stream().map(elem -> MedicalRecords.builder()
+                        .allergies(elem.getAllergies().stream().map(allergie -> new String(allergie)).collect(Collectors.toList()))
+                        .medications(elem.getMedications().stream().map(medication -> new String(medication)).collect(Collectors.toList()))
+                        .id(elem.getId())
+                        .build()).collect(Collectors.toList()))
+                .build();
+        repository.delete(p);
+        return copy;
     }
 
     public Person putPerson(Person currentPerson ,final Integer id){
@@ -92,5 +111,24 @@ public class PersonService {
             return repository.findById(id).orElseThrow(()->
                     new NoSuchElementException("Error with addPerson "+id));
         }
+    }
+
+    public Boolean isAdult(Person person){
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        LocalDate birthDate = LocalDate.parse(person.getBirthDate(),format);
+        int i = Math.toIntExact(birthDate.until(date, ChronoUnit.YEARS));
+        if (i<=18){
+            return false;
+        }else {
+            return true;
+        }
+    }
+
+    public int countAge(Person person){
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        LocalDate birthDate = LocalDate.parse(person.getBirthDate(),format);
+        return Math.toIntExact(birthDate.until(date, ChronoUnit.YEARS));
     }
 }

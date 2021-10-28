@@ -2,8 +2,7 @@ package com.main.safetynetproject.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.main.safetynetproject.model.Person;
 import com.main.safetynetproject.repository.PersonRepository;
@@ -51,11 +50,11 @@ public class PersonServiceTest {
     @Test
     public void deletePerson_shouldReturnOK(){
         Person p = new Person();
+        p.setFirstName("david");
         when(repository.findById(any())).thenReturn(Optional.of(p));
-        //service.deletePerson(any());
-        //when(service.deletePerson(any())).thenReturn(ap);
-        //when(repository).thenReturn(any());
-        assertEquals(service.deletePerson(1),p);
+        doNothing().when(repository).delete(any());
+        Person personResult = service.deletePerson(1);
+        assertEquals(p.getFirstName(), personResult.getFirstName());
     }
 
     @Test

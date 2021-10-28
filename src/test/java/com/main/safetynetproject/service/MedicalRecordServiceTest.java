@@ -2,8 +2,10 @@ package com.main.safetynetproject.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
+import com.main.safetynetproject.model.FireStations;
 import com.main.safetynetproject.model.MedicalRecords;
 import com.main.safetynetproject.repository.MedicalRecordRepository;
 import org.junit.jupiter.api.Test;
@@ -48,10 +50,13 @@ public class MedicalRecordServiceTest {
     }
 
     @Test
-    public void deletePerson_shouldReturnOK(){
+    public void deleteMedicalRecord_shouldReturnOK(){
         MedicalRecords mr = new MedicalRecords();
+        mr.setId(1);
         when(repository.findById(any())).thenReturn(Optional.of(mr));
-        assertEquals(service.deleteMedicalRecord(1),mr);
+        doNothing().when(repository).delete(any());
+        MedicalRecords medicalRecordResult = service.deleteMedicalRecord(1);
+        assertEquals(mr.getMedications(), medicalRecordResult.getMedications());
     }
 
     @Test

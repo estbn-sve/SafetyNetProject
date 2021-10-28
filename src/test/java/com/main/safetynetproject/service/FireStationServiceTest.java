@@ -2,9 +2,11 @@ package com.main.safetynetproject.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import com.main.safetynetproject.model.FireStations;
+import com.main.safetynetproject.model.Person;
 import com.main.safetynetproject.repository.FireStationRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +52,11 @@ public class FireStationServiceTest {
     @Test
     public void deleteFireStation_shouldReturnOK(){
         FireStations fs = new FireStations();
+        fs.setStation(1);
         when(repository.findById(any())).thenReturn(Optional.of(fs));
-        assertEquals(service.deleteFireStation(1),fs);
+        doNothing().when(repository).delete(any());
+        FireStations fireStationResult = service.deleteFireStation(1);
+        assertEquals(fs.getStation(), fireStationResult.getStation());
     }
 
     @Test
