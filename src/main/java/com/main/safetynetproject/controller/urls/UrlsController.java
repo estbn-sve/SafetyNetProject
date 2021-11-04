@@ -1,9 +1,6 @@
 package com.main.safetynetproject.controller.urls;
 
-import com.main.safetynetproject.controller.urls.dto.EnfantsInAddressWithCountResponse;
-import com.main.safetynetproject.controller.urls.dto.PersonAndFamilyInFireStationWithCountResponse;
-import com.main.safetynetproject.controller.urls.dto.PersonAndFireStationWithCountResponse;
-import com.main.safetynetproject.controller.urls.dto.PersonInFireStationWithCountResponse;
+import com.main.safetynetproject.controller.urls.dto.*;
 import com.main.safetynetproject.model.Person;
 import com.main.safetynetproject.repository.FireStationRepository;
 import com.main.safetynetproject.service.FireStationService;
@@ -48,8 +45,20 @@ public class UrlsController {
     }
 
     @GetMapping("/flood/stations")
-    public PersonAndFamilyInFireStationWithCountResponse searchPersonAndFamilyFromFireStation(@RequestParam("stationNumber")final Integer stationNumber){
+    public List <PersonAndFamilyInFireStationWithCountResponse> searchPersonAndFamilyFromFireStation(@RequestParam("stationNumber")List<Integer> stationNumber){
         log.info("GET /flood/stations?stations="+stationNumber);
         return service.searchPersonAndFamilyFromFireStation(stationNumber);
+    }
+
+    @GetMapping("/personInfo")
+    public PersonInfoByFirstNameAndLastNameResponse searchPersonInfoByFirstNameAndLastName(@RequestParam("firstName")String firstName, @RequestParam("lastName")String lastName){
+        log.info("GET /personInfo?firstName="+firstName+"&lastName"+lastName);
+        return service.searchPersonInfoByFirstNameAndLastName(firstName,lastName);
+    }
+
+    @GetMapping("/communityEmail")
+    public List<String> searchEmailByCity(@RequestParam("city")String city){
+        log.info(("GET /comunityEmail?city"+city));
+        return service.searchEmailByCity(city);
     }
 }

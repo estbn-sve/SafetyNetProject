@@ -1,19 +1,17 @@
 package com.main.safetynetproject.controller.urls.dto;
-
 import com.main.safetynetproject.model.MedicalRecords;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class PersonAndFireStationWithCountResponse {
+public class PersonInfoByFirstNameAndLastNameResponse {
     public static class Person {
         public String firstName;
         public String lastName ;
-        public String phone;
         public int age;
+        public String email;
         public List<MedicalRecords> medicalRecords;
     }
-    int fireStation;
     List<Person> persons;
 }

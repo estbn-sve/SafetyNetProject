@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.stream.Collector;
 
 @Service
 public class FireStationService {
@@ -64,5 +66,25 @@ public class FireStationService {
 
     public List<FireStations> addAllFireStations(List<FireStations> fireStationsList){
         return repository.saveAll(fireStationsList);
+    }
+
+    public int FireStationsByAddress(String address){
+        /*List <FireStations> fireStationsList = repository.findAll();
+        int result = 500;
+        for(FireStations fs : fireStationsList){
+            for (String fsAddress : fs.getAddress()){
+                if (Objects.equals(fsAddress, address)) {
+                    result = fs.getStation();
+                } else {
+                    result = 404;
+                }
+            }
+        }
+        return result;*/
+        int result = 500;
+        FireStations fs = repository.findByAddress(address)
+                .orElseThrow(() -> new NoSuchElementException("There is no firestation with address " + address));
+        result = fs.getStation();
+        return result;
     }
 }

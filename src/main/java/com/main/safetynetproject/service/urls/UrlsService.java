@@ -1,24 +1,21 @@
 package com.main.safetynetproject.service.urls;
 
-import com.main.safetynetproject.controller.urls.dto.EnfantsInAddressWithCountResponse;
-import com.main.safetynetproject.controller.urls.dto.PersonAndFamilyInFireStationWithCountResponse;
-import com.main.safetynetproject.controller.urls.dto.PersonAndFireStationWithCountResponse;
-import com.main.safetynetproject.controller.urls.dto.PersonInFireStationWithCountResponse;
+import com.main.safetynetproject.controller.urls.dto.*;
 import com.main.safetynetproject.model.FireStations;
 import com.main.safetynetproject.model.Person;
 import com.main.safetynetproject.repository.FireStationRepository;
 import com.main.safetynetproject.repository.MedicalRecordRepository;
 import com.main.safetynetproject.repository.PersonRepository;
+import com.main.safetynetproject.service.FireStationService;
 import com.main.safetynetproject.service.PersonService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Slf4j
 @Service
 public class UrlsService {
     @Autowired
@@ -29,6 +26,8 @@ public class UrlsService {
     MedicalRecordRepository mrRepository;
     @Autowired
     PersonService pService;
+    @Autowired
+    FireStationService fsService;
 
     public PersonInFireStationWithCountResponse searchPersonFromFireStationResponsible(final Integer stationNumber){
         FireStations fireStations = fsRepository.findByStation(stationNumber)
@@ -50,6 +49,7 @@ public class UrlsService {
             return result;
         }).collect(Collectors.toList()));
 
+        //TODO count
         int adultesNumber = 0;
         int enfantsNumber = 0;
         for (Person person : persons){
@@ -83,7 +83,6 @@ public class UrlsService {
                     .filter(person1 -> !person1.getId()
                             .equals(person.getId()))
                     .collect(Collectors.toList());
-            //TODO afficher toutes les informations ?!
             result.famille = famille;
             return result;
         }).collect(Collectors.toList()));
@@ -93,36 +92,19 @@ public class UrlsService {
     public List<String>searchNumberFromFireStationResponsible(final Integer stationNumber){
         FireStations fireStations = fsRepository.findByStation(stationNumber)
                 .orElseThrow(() -> new NoSuchElementException("There is no firestation with station number " + stationNumber));
-        List<Person> persons = fireStations.getAddress()
+        return fireStations.getAddress()
                 .stream()
                 .map(address -> pRepository.findAllByAddress(address))
-                .flatMap(Collection::stream).collect(Collectors.toList());
-        return persons.stream().map(Person::getPhone
-        ).collect(Collectors.toList());
+                .flatMap(Collection::stream).map(Person::getPhone
+                ).collect(Collectors.toList());
     }
 
     public PersonAndFireStationWithCountResponse searchPersonAndFireStationFromAddressResponsible(final String address){
-        List<FireStations> fireStationsList = fsRepository.findAll();
-        FireStations f = new FireStations();
-        f.setStation(fireStationsList.stream().flatMapToInt(fireStations -> {
-                    FireStations fs = new FireStations();
-                    fs.builder().station(fireStations.getStation()).build();
-                    return IntStream.of(fs.getStation());
-                }).findFirst().getAsInt());
-        /*FireStations finalFireStation = fireStationsList
-                .stream()
-                .forEach(fireStations -> fireStationsList
-                        .stream()
-                        .filter(fireStations1 -> fireStations1.getAddress()
-                                .equals(address)
-                        ).collect(Collectors.toList())
-                );*/
-        List<Person> personList = pRepository.findAllByAddress(address);
         PersonAndFireStationWithCountResponse p = new PersonAndFireStationWithCountResponse();
+        p.setFireStation(fsService.FireStationsByAddress(address));
+        List<Person> personList = pRepository.findAllByAddress(address);
         p.setPersons(personList.stream().map(person -> {
             PersonAndFireStationWithCountResponse.Person result = new PersonAndFireStationWithCountResponse.Person();
-            //TODO number station à 0 pas ok
-            result.fireStation = f.getStation();
             result.firstName = person.getFirstName();
             result.lastName = person.getLastName();
             result.phone = person.getPhone();
@@ -133,28 +115,59 @@ public class UrlsService {
         return p;
     }
 
-    public PersonAndFamilyInFireStationWithCountResponse searchPersonAndFamilyFromFireStation(final Integer stationNumber){
-        FireStations fireStations = fsRepository.findByStation(stationNumber)
-                .orElseThrow(() -> new NoSuchElementException("There is no firestation with station number " + stationNumber));
-
-        List<Person> persons = fireStations.getAddress()
-                .stream()
-                .map(address -> pRepository.findAllByAddress(address))
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
-
+    //TODO crée un foyer par address
+    public List<PersonAndFamilyInFireStationWithCountResponse> searchPersonAndFamilyFromFireStation(List<Integer> stationNumber) {
+        List<FireStations> fireStationsList = fsRepository.findAllByStationIn(stationNumber);
+        List<PersonAndFamilyInFireStationWithCountResponse> pList = new ArrayList<>();
         PersonAndFamilyInFireStationWithCountResponse p = new PersonAndFamilyInFireStationWithCountResponse();
-        p.setFoyers(persons.stream().map(person -> {
-            PersonAndFamilyInFireStationWithCountResponse.Foyer foyer = new PersonAndFamilyInFireStationWithCountResponse.Foyer();
-            PersonAndFamilyInFireStationWithCountResponse.member result = new PersonAndFamilyInFireStationWithCountResponse.member();
-                result.firstName = person.getFirstName();
-                result.lastName = person.getLastName();
-                result.phone = person.getPhone();
-                result.age = pService.countAge(person);
-                result.medicalRecords = person.getMedicalRecords();
-            foyer.members = Collections.singletonList(result);
-            return foyer;
+        int i1 =0;
+        int i2=0;
+        for (FireStations fireStations : fireStationsList) {
+            i1=i1+1;
+            log.info("tours i1:"+i1);
+            log.info("1er for StationNumber : "+fireStations.getStation()+" -----------------------");
+            List<String> addressList = fireStations.getAddress();
+            log.info("addressList : "+ addressList);
+            for (String address : addressList) {
+                i2 = i2+1;
+                log.info("tours i2:"+i2);
+                log.info("2eme for address : "+address+" -----------------------");
+                List<Person> persons = pRepository.findAllByAddress(address);
+                p.setAddress(address);
+                p.setFoyers(persons.stream().map(person -> {
+                    PersonAndFamilyInFireStationWithCountResponse.Member result = new PersonAndFamilyInFireStationWithCountResponse.Member();
+                    result.firstName = person.getFirstName();
+                    result.lastName = person.getLastName();
+                    result.phone = person.getPhone();
+                    result.age = pService.countAge(person);
+                    result.medicalRecords = person.getMedicalRecords();
+                    return result;
+                }).collect(Collectors.toList()));
+                pList.add(p);
+            }
+    }
+        return pList;
+}
+
+
+    //TODO revoir enoncer "Si plusieurs personnes portent le même nom, elles doivent toutes apparaître."
+    public PersonInfoByFirstNameAndLastNameResponse searchPersonInfoByFirstNameAndLastName(String firstName, String lastName){
+        List<Person> personList = pRepository.findAllByFirstNameAndLastName(firstName,lastName);
+        PersonInfoByFirstNameAndLastNameResponse p = new PersonInfoByFirstNameAndLastNameResponse();
+
+        p.setPersons(personList.stream().map(person -> {
+            PersonInfoByFirstNameAndLastNameResponse.Person result = new PersonInfoByFirstNameAndLastNameResponse.Person();
+            result.firstName = person.getFirstName();
+            result.lastName = person.getLastName();
+            result.email = person.getEmail();
+            result.age = pService.countAge(person);
+            result.medicalRecords = person.getMedicalRecords();
+            return result;
         }).collect(Collectors.toList()));
         return p;
+    }
+
+    public List<String> searchEmailByCity(String city){
+        return pService.emailByCity(city);
     }
 }

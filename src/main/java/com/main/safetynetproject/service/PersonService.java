@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -118,11 +119,7 @@ public class PersonService {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         LocalDate birthDate = LocalDate.parse(person.getBirthDate(),format);
         int i = Math.toIntExact(birthDate.until(date, ChronoUnit.YEARS));
-        if (i<=18){
-            return false;
-        }else {
-            return true;
-        }
+        return i > 18;
     }
 
     public int countAge(Person person){
@@ -130,5 +127,14 @@ public class PersonService {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         LocalDate birthDate = LocalDate.parse(person.getBirthDate(),format);
         return Math.toIntExact(birthDate.until(date, ChronoUnit.YEARS));
+    }
+
+    public List<String> emailByCity(String city){
+        List<Person> personList = repository.findByCity(city);
+        List<String>result = new ArrayList<>();
+        for (Person person : personList){
+            result.add(person.getEmail());
+        }
+        return result;
     }
 }
