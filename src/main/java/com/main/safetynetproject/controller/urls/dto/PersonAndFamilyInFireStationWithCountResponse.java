@@ -7,10 +7,6 @@ import java.util.List;
 
 @Data
 public class PersonAndFamilyInFireStationWithCountResponse {
-    /*public static class Foyer {
-        public String address;
-        public List<Member> members;
-    }*/
     public static class Member {
         public String firstName;
         public String lastName;

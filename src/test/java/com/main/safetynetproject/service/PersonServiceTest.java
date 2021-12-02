@@ -7,6 +7,10 @@ import static org.mockito.Mockito.*;
 import com.main.safetynetproject.model.Person;
 import com.main.safetynetproject.repository.PersonRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,14 +21,14 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+
+@ExtendWith(MockitoExtension.class)
 public class PersonServiceTest {
 
-    @Autowired
+    @InjectMocks
     private PersonService service;
 
-    @MockBean
+    @Mock
     private PersonRepository repository;
 
     @Test
@@ -97,8 +101,7 @@ public class PersonServiceTest {
     public void addPerson_shouldThrowNoSuchElement(){
         Person p = new Person();
         when(repository.existsById(any())).thenReturn(true);
-        when(repository.save(any())).thenReturn(p);
-        assertThrows(NoSuchElementException.class, () -> service.addPerson(p).getId());
+        assertThrows(NoSuchElementException.class, () -> service.addPerson(p));
     }
 
 }

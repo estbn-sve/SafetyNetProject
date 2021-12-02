@@ -35,7 +35,8 @@ public class UrlsService {
 
         List<Person> persons = fireStations.getAddress()
                 .stream()
-                .map(address -> pRepository.findAllByAddress(address))
+                .map(address -> pRepository.findAllByAddress(address)
+                        .orElseThrow(() -> new NoSuchElementException("There is no persons with this address : " + address)))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
@@ -49,7 +50,6 @@ public class UrlsService {
             return result;
         }).collect(Collectors.toList()));
 
-        //TODO count
         int adultesNumber = 0;
         int enfantsNumber = 0;
         for (Person person : persons){
@@ -66,7 +66,8 @@ public class UrlsService {
     }
 
     public EnfantsInAddressWithCountResponse searchEnfantFromAddressResponsible(final String address){
-        List<Person> personList = pRepository.findAllByAddress(address);
+        List<Person> personList = pRepository.findAllByAddress(address)
+                .orElseThrow(() -> new NoSuchElementException("There is no persons with this address : " + address));
         List<Person> enfantList = personList
                 .stream()
                 .filter(person -> !pService.isAdult(person))
@@ -94,15 +95,19 @@ public class UrlsService {
                 .orElseThrow(() -> new NoSuchElementException("There is no firestation with station number " + stationNumber));
         return fireStations.getAddress()
                 .stream()
-                .map(address -> pRepository.findAllByAddress(address))
+                .map(address -> pRepository.findAllByAddress(address)
+                        .orElseThrow(() -> new NoSuchElementException("There is no persons with this address : " + address)))
                 .flatMap(Collection::stream).map(Person::getPhone
                 ).collect(Collectors.toList());
     }
 
     public PersonAndFireStationWithCountResponse searchPersonAndFireStationFromAddressResponsible(final String address){
         PersonAndFireStationWithCountResponse p = new PersonAndFireStationWithCountResponse();
-        p.setFireStation(fsService.FireStationsByAddress(address));
-        List<Person> personList = pRepository.findAllByAddress(address);
+        List<FireStations> fsList = fsRepository.findAllByAddress(address)
+                .orElseThrow(() -> new NoSuchElementException("There is no firestation with this address " + address));
+        p.setFireStation(fsList.stream().map(FireStations::getStation).collect(Collectors.toList()));
+        List<Person> personList = pRepository.findAllByAddress(address)
+                .orElseThrow(() -> new NoSuchElementException("There is no persons with this address " + address));
         p.setPersons(personList.stream().map(person -> {
             PersonAndFireStationWithCountResponse.Person result = new PersonAndFireStationWithCountResponse.Person();
             result.firstName = person.getFirstName();
@@ -115,46 +120,37 @@ public class UrlsService {
         return p;
     }
 
-    //TODO crée un foyer par address
     public List<PersonAndFamilyInFireStationWithCountResponse> searchPersonAndFamilyFromFireStation(List<Integer> stationNumber) {
-        List<FireStations> fireStationsList = fsRepository.findAllByStationIn(stationNumber);
-        List<PersonAndFamilyInFireStationWithCountResponse> pList = new ArrayList<>();
-        PersonAndFamilyInFireStationWithCountResponse p = new PersonAndFamilyInFireStationWithCountResponse();
-        int i1 =0;
-        int i2=0;
-        for (FireStations fireStations : fireStationsList) {
-            i1=i1+1;
-            log.info("tours i1:"+i1);
-            log.info("1er for StationNumber : "+fireStations.getStation()+" -----------------------");
-            List<String> addressList = fireStations.getAddress();
-            log.info("addressList : "+ addressList);
-            for (String address : addressList) {
-                i2 = i2+1;
-                log.info("tours i2:"+i2);
-                log.info("2eme for address : "+address+" -----------------------");
-                List<Person> persons = pRepository.findAllByAddress(address);
-                p.setAddress(address);
-                p.setFoyers(persons.stream().map(person -> {
-                    PersonAndFamilyInFireStationWithCountResponse.Member result = new PersonAndFamilyInFireStationWithCountResponse.Member();
-                    result.firstName = person.getFirstName();
-                    result.lastName = person.getLastName();
-                    result.phone = person.getPhone();
-                    result.age = pService.countAge(person);
-                    result.medicalRecords = person.getMedicalRecords();
-                    return result;
-                }).collect(Collectors.toList()));
-                pList.add(p);
-            }
+        List<FireStations> fireStationsList = fsRepository.findAllByStationIn(stationNumber)
+                .orElseThrow(() -> new NoSuchElementException("There is no firestation with station number " + stationNumber));
+
+        List<PersonAndFamilyInFireStationWithCountResponse>list = fireStationsList.stream()
+                .map(FireStations::getAddress).flatMap(Collection::stream).distinct()
+                .map(address-> {
+                    PersonAndFamilyInFireStationWithCountResponse p1 = new PersonAndFamilyInFireStationWithCountResponse();
+                    p1.setAddress(address);
+                    List<PersonAndFamilyInFireStationWithCountResponse.Member> memberList = pRepository.findAllByAddress(address)
+                            .orElseThrow(() -> new NoSuchElementException("There is no person with this address : " + address))
+                            .stream().distinct()
+                            .map(person -> {
+                                PersonAndFamilyInFireStationWithCountResponse.Member member = new PersonAndFamilyInFireStationWithCountResponse.Member();
+                                member.firstName = person.getFirstName();
+                                member.lastName = person.getLastName();
+                                member.phone = person.getPhone();
+                                member.age = pService.countAge(person);
+                                member.medicalRecords = person.getMedicalRecords();
+                                return member;
+                            }).collect(Collectors.toList());
+                    p1.setFoyers(memberList);
+                    return p1;
+                }).collect(Collectors.toList());
+        return list;
     }
-        return pList;
-}
 
-
-    //TODO revoir enoncer "Si plusieurs personnes portent le même nom, elles doivent toutes apparaître."
     public PersonInfoByFirstNameAndLastNameResponse searchPersonInfoByFirstNameAndLastName(String firstName, String lastName){
-        List<Person> personList = pRepository.findAllByFirstNameAndLastName(firstName,lastName);
+        List<Person> personList = pRepository.findAllByFirstNameAndLastName(firstName,lastName)
+                .orElseThrow(() -> new NoSuchElementException("There is no persons with this firstName : "+firstName +" and lastName : " + lastName));
         PersonInfoByFirstNameAndLastNameResponse p = new PersonInfoByFirstNameAndLastNameResponse();
-
         p.setPersons(personList.stream().map(person -> {
             PersonInfoByFirstNameAndLastNameResponse.Person result = new PersonInfoByFirstNameAndLastNameResponse.Person();
             result.firstName = person.getFirstName();
@@ -168,6 +164,13 @@ public class UrlsService {
     }
 
     public List<String> searchEmailByCity(String city){
-        return pService.emailByCity(city);
+        List<Person> personList = pRepository.findByCity(city)
+                .orElseThrow(() -> new NoSuchElementException("There is no persons with this city " + city));
+        List<String>result = new ArrayList<>();
+        for (Person person : personList){
+            result.add(person.getEmail());
+        }
+        result.stream().distinct().map(String::toString).collect(Collectors.toList());
+        return result;
     }
 }

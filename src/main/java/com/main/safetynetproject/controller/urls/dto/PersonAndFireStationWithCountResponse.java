@@ -14,6 +14,6 @@ public class PersonAndFireStationWithCountResponse {
         public int age;
         public List<MedicalRecords> medicalRecords;
     }
-    int fireStation;
+    List<Integer> fireStation;
     List<Person> persons;
 }

@@ -9,6 +9,10 @@ import com.main.safetynetproject.model.FireStations;
 import com.main.safetynetproject.model.Person;
 import com.main.safetynetproject.repository.FireStationRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,14 +23,13 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 public class FireStationServiceTest {
 
-    @Autowired
+    @InjectMocks
     private FireStationService service;
 
-    @MockBean
+    @Mock
     private FireStationRepository repository;
 
     @Test
@@ -99,7 +102,6 @@ public class FireStationServiceTest {
     public void addFireStation_shouldThrowNoSuchElement(){
         FireStations fs = new FireStations();
         when(repository.existsById(any())).thenReturn(true);
-        when(repository.save(any())).thenReturn(fs);
         assertThrows(NoSuchElementException.class, () -> service.addFireStation(fs));
     }
 

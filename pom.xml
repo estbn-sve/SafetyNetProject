@@ -58,6 +58,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+        </dependency>
         <!--Added Spring Security!-->
         <!--<dependency>
             <groupId>org.springframework.boot</groupId>
@@ -110,6 +114,12 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.7</version>
+                <configuration>
+                    <excludes>
+                        <exclude>/com/main/safetynetproject/controller/urls/dto/**/*</exclude>
+                        <exclude>/com/main/safetynetproject/model/**/*</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

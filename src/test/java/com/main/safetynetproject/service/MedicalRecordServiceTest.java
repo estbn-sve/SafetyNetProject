@@ -9,6 +9,10 @@ import com.main.safetynetproject.model.FireStations;
 import com.main.safetynetproject.model.MedicalRecords;
 import com.main.safetynetproject.repository.MedicalRecordRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,14 +23,13 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 public class MedicalRecordServiceTest {
 
-    @Autowired
+    @InjectMocks
     private MedicalRecordService service;
 
-    @MockBean
+    @Mock
     private MedicalRecordRepository repository;
 
     @Test
@@ -99,7 +102,6 @@ public class MedicalRecordServiceTest {
     public void addMedicalRecord_shouldThrowNoSuchElement(){
         MedicalRecords mr = new MedicalRecords();
         when(repository.existsById(any())).thenReturn(true);
-        when(repository.save(any())).thenReturn(mr);
         assertThrows(NoSuchElementException.class, () -> service.addMedicalRecord(mr));
     }
 

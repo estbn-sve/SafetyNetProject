@@ -128,13 +128,4 @@ public class PersonService {
         LocalDate birthDate = LocalDate.parse(person.getBirthDate(),format);
         return Math.toIntExact(birthDate.until(date, ChronoUnit.YEARS));
     }
-
-    public List<String> emailByCity(String city){
-        List<Person> personList = repository.findByCity(city);
-        List<String>result = new ArrayList<>();
-        for (Person person : personList){
-            result.add(person.getEmail());
-        }
-        return result;
-    }
 }
