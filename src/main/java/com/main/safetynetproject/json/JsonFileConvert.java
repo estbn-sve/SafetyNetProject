@@ -2,9 +2,9 @@ package com.main.safetynetproject.json;
 
 import com.jsoniter.JsonIterator;
 import com.jsoniter.any.Any;
-import com.main.safetynetproject.object.FireStations;
-import com.main.safetynetproject.object.MedicalRecords;
-import com.main.safetynetproject.object.Person;
+import com.main.safetynetproject.model.FireStations;
+import com.main.safetynetproject.model.MedicalRecords;
+import com.main.safetynetproject.model.Person;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import java.io.File;
